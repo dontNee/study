@@ -1,0 +1,35 @@
+$square-size: 68px;
+
+.square {
+    display: block;
+    background-color: #eaba73;
+    width: $square-size;
+    height: $square-size;
+    border-width: 1px;
+
+    .chess {
+        display: block;
+        width: 80%;
+        height: 80%;
+        margin: 0 auto;
+        border-radius: 50%;
+        background-position: center;
+
+        &.black {
+            background-image: url("http://43.138.104.32:80/global-assets/img/study/chess-black.png");
+        }
+
+        &.white {
+            background-image: url("http://43.138.104.32:80/global-assets/img/study/chess-white.png");
+        }
+
+        &.whitetips {
+            background-image: url("http://43.138.104.32:80/global-assets/img/study/chess-white.png");
+            opacity: 0.5;
+        }
+        &.blacktips {
+            background-image: url("http://43.138.104.32:80/global-assets/img/study/chess-black.png");
+            opacity: 0.5;
+        }
+    }
+}
