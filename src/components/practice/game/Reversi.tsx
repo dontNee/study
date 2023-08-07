@@ -18,7 +18,7 @@ export default function Reversi() {
         <Section title={title}>
             <p>{descption}</p>
             <p>{rules}</p>
-            <div style={{width: "100%", overflowX: "scroll"}}>
+            <div style={{width: "100%", overflowX: "auto"}}>
                 <ReversiGame />
             </div>
         </Section>
