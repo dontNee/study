@@ -56,8 +56,6 @@ function Board() {
             }
             resultList.push(rowResult);
         }
-        // 打印结果
-        console.debug("绘制棋盘：", resultList);
         // 返回棋盘
         return resultList;
     }, []);

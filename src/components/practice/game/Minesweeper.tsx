@@ -1,4 +1,6 @@
 import Section from "@/components/section";
+import styles from "@/styles/minesweeper.module.scss";
+import { useState } from "react";
 // 扫雷
 export default function Minesweeper() {
     // 游戏标题
@@ -20,8 +22,33 @@ export default function Minesweeper() {
     );
 }
 
+// 扫雷游戏
 function MinesweeperGame() {
+    
     return (
-        <></>
+        <>
+            <Square></Square>
+            <Square></Square>
+            <Square></Square>
+        </>
+    );
+}
+
+// 棋子组件
+function Square() {
+    // 初始化为盲盒状态, 即closed
+    const [openState, setOpenState] = useState(false);
+
+    // 处理按钮的点击
+    function handleBtnClick() {
+        // 开启按钮
+        setOpenState(true);
+    }
+
+    return (
+        <button 
+            className={`${styles.square} ${openState ? styles.opened : styles.closed}`} 
+            onClick={handleBtnClick}
+        ></button>
     );
 }

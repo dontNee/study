@@ -1,0 +1,17 @@
+.square {
+    width: 24px;
+    height: 24px;
+
+    &.closed {
+        background-color: #c0c0c0;
+        border-top-color: #fff;
+        border-left-color: #fff;
+        border-right-color: #808080;
+        border-bottom-color: #808080;
+    }
+
+    &.opened {
+        background-color: #bebebe;
+        border: 2px solid #828282;
+    }
+}
