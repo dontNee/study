@@ -1,0 +1,9 @@
+{
+    "component": {
+        "lifecycle": {
+            "mounted": "component has benn mounted",
+            "updated": "component has benn updated",
+            "destoryed": "component has benn destoryed"
+        }
+    }
+}

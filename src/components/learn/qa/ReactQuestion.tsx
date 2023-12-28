@@ -9,7 +9,7 @@ export function ReactQuestion() {
                 <p>React属性更新后会触发DOM渲染,Vue属性更新后不能触发DOM的更新</p>
             </Section>
             <Section title="React和Vue的相同点">
-                <p>两个流行的前端框架，都实现了响应式的功能</p>
+                <p>两个流行的前端框架，都实现了响应式的功能，并且为提高前端性能，都使用了虚拟Dom</p>
                 <p>Vue2的组件和React的类组件模式比较相似，Vue3的组合式组件和React的函数式组件比较相似，</p>
             </Section>
             <Section title="React组件的生命周期">
@@ -102,6 +102,20 @@ export function ReactQuestion() {
                         <p>useReducer不要创建多次，因为每一次都会创建新的</p>
                     </dl>
 
+                </dl>
+            </Section>
+
+            <Section title="React中碰到的问题">
+                <dl>
+                    <dt>1.当页面跳转到404页面时，停留3秒跳转到首页，并且显示剩余时间</dt>
+                    <dl>
+                        <p>注意点：必须要合理的设置Effect依赖，避免Effect函数被重复执行</p>
+                    </dl>
+
+                    <dt>2.如何在nextjs中添加国际化支持</dt>
+                    <dl>
+                        <p>添加next-i18next.config.js文件，指定国际化语言和国际化文件;使用appWithTranslation添加全局国际化支持；组件级别上获取国际化文件；</p>
+                    </dl>
                 </dl>
             </Section>
         </>

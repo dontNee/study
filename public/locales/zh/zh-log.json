@@ -1,0 +1,9 @@
+{
+    "component": {
+        "lifecycle": {
+            "mounted": "组件已挂载",
+            "updated": "组件已更新",
+            "destoryed": "组件已被销毁"
+        }
+    }
+}
