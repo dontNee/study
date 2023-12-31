@@ -1,6 +1,9 @@
 import Section from "@/components/section";
 import styles from "@/styles/minesweeper.module.scss";
-import { useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
+import Confirm from "@/components/confirm";
+import * as _ from "lodash";
+import { url } from "inspector";
 // 扫雷
 export default function Minesweeper() {
     // 游戏标题
@@ -24,50 +27,38 @@ export default function Minesweeper() {
 
 // 扫雷游戏
 function MinesweeperGame({rows = 9, cols = 9, mines = 10}) {
+    // 游戏结束对话框控制
+    const [confirmOpen, setConfirmOpened] = useState(false);
+    // 重新开始控制
+    const [restart, setRestart] = useState(false);
     // 坐标系
-    const axis = useMemo(() => {
+    const [axis, setAxis] = useState([] as any);
+    // 坐标系
+    useEffect(() => {
         // 雷位置数组
         const minesList = [];
         // 9*9
         for (let x = 1;x <= rows; x++) {
-            // 是否已有足够的雷
-            if (minesList.length == mines) {
-                break;
-            }
             for(let y = 1; y <= cols; y++) {
                 // 获取一个随机数(0 <= random < 1)
                 let random = Math.random();
                 // 获取当前数组长度
                 let minesListLength = minesList.length;
-                // 特殊条件下，优先被执行
-                if (x == 2 && minesListLength == 0) {
-                    // 获取个位数
-                    let tmp = Math.ceil(random * 10);
-                    // 0 取 1 ， 10 取 9
-                    tmp = tmp == 0 ? 1 : tmp == 10 ? 9 : tmp;
-                    // 取tmp
-                    minesList.push([x, tmp]);break;
-                }  
-                if (x == 4 && minesListLength == 1) {
-                    // 获取个位数
-                    let tmp = Math.ceil(random * 10);
-                    // 0 取 1 ， 10 取 9
-                    tmp = tmp == 0 ? 1 : tmp == 10 ? 9 : tmp;
-                    // 取tmp
-                    minesList.push([x, tmp]);break;
-                }
-                if (x == rows && minesListLength == 0) {
-                    // 随机取3个数
-                    minesList.push([x, y]);break;
-                }
-                // 获取随机数
-                if (random > 0.875) {
-                    // 当前位置设置雷
+                // 长度不够10个时，优先添加满
+                if (minesListLength < mines) {
                     minesList.push([x, y]);
+                }
+                // 长度满足10个并且随机数 > 0.8
+                if (random > 0.75 && minesListLength == mines) {
+                    // 获取数组的索引
+                    let index = _.random(0, mines - 1);
+                    // 当前位置设置雷
+                    minesList.splice(index, 1, [x, y]);
                 }
             }
         }
-
+        // 打印地雷数组
+        console.debug("mines:", minesList);
         // 初始化坐标系为一个空数组
         const result = [];
         // 9*9
@@ -76,36 +67,79 @@ function MinesweeperGame({rows = 9, cols = 9, mines = 10}) {
             const currentRow = [];
             // 生成列
             for(let y = 1; y <= cols; y++) {
-                currentRow.push(<td key={y} style={{lineHeight: "0"}}><Square x={x} y={y}></Square></td>);
+                // 遍历地雷数组，获取地雷坐标
+                let shouldMine: boolean = _.findIndex(minesList, (item) => item[0] == x && item[1] == y) > -1;
+                // 生成组件
+                currentRow.push(
+                    <td key={y} style={{lineHeight: "0"}}>
+                        <Square x={x} y={y} minesflag={shouldMine} squareClick={handleSqureClick} restartFlag={restart}></Square>
+                    </td>
+                );
             }
             result.push(<tr key={x}>{currentRow}</tr>);
         }
-        return (
+        setAxis(result);
+    }, [restart]);
+
+    // 处理点击按钮数量
+    function handleSqureClick(isMines: boolean) {
+        // 游戏结束
+        if (isMines) {
+            // 开启对话框
+            setConfirmOpened(true);
+        }
+    }
+
+    // 游戏重新开始
+    function handleGameRestart() {
+        // 设置状态
+        setRestart(!restart);
+    }
+    
+    return (
+        <>
             <table border={0}>
                 <tbody>
-                    { result }
+                    { axis }
                 </tbody>
             </table>
-        );
-    }, []);
-    
-    return axis;
+            <Confirm open={confirmOpen} setOpen={setConfirmOpened} restartGame={handleGameRestart} message={"游戏结束，再来一次？" }></Confirm>
+        </>
+    );
 }
 
 // 棋子组件
-function Square({x, y}: any) {
+function Square({x, y, minesflag, squareClick, restartFlag}: any) {
     // 初始化为盲盒状态, 即closed
     const [openState, setOpenState] = useState(false);
+    // 动态设置className
+    const [btnClassName, setBtnClassName] = useState("");
+
+    // 初始化钩子函数
+    useEffect(() => {
+        // 类名字符串
+        const strClassName = minesflag 
+            ? `${styles.square} ${openState ? styles.opened : styles.closed} ${styles.mines}` 
+            : `${styles.square} ${openState ? styles.opened : styles.closed}`
+        setBtnClassName(strClassName);
+    }, [openState, minesflag]);
+    // 重新开始
+    useEffect(() => {
+        // 重新设置打开状态
+        setOpenState(false);
+    }, [restartFlag])
 
     // 处理按钮的点击
     function handleBtnClick() {
         // 开启按钮
         setOpenState(true);
+        // 上级处理点击事件
+        squareClick(minesflag);
     }
 
     return (
         <button 
-            className={`${styles.square} ${openState ? styles.opened : styles.closed}`} 
+            className={btnClassName}
             onClick={handleBtnClick}
         ></button>
     );
