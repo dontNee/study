@@ -1,6 +1,11 @@
 import * as _ from "lodash";
 import { ChessState } from "../game/Reversi";
 
+interface InitBoardChessType {
+    [ChessState.black]: [],
+    [ChessState.white]: []
+}
+
 export default {
     // 获取指定点位转换对方的棋子
     // 参数： 坐标， 当前棋子， 棋盘布局
@@ -178,7 +183,7 @@ export default {
         // 获取白棋
         let whiteChess = boardChess && boardChess.length == 2 ? boardChess[1] : [[4,5], [5,4]];
         // 初始化棋盘
-        let initBoardChess = {};
+        let initBoardChess = {} as InitBoardChessType;
         // 初始化黑棋
         Reflect.defineProperty(initBoardChess, ChessState.black, {value: blackChess, writable: true, enumerable: true});
         // 初始化白棋

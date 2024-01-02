@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import ReversiRules from "../gameRules/ReversiRules";
 import * as _ from "lodash";
 import styles from "@/styles/reversi.module.scss";
+import { Button, Divider } from "@mui/material";
 
 // 黑白棋
 export default function Reversi() {
@@ -27,14 +28,28 @@ export default function Reversi() {
 
 // 游戏组件
 function ReversiGame() {
+    // 提示功能
+    const [openTip, setOpenTip] = useState(false);
+    // 黑棋数量
+    const [blackCount, setBlackCount] = useState(0);
+    // 白棋数量
+    const [whiteCount, setWhiteCount] = useState(0);
 
     return (
-        <Board />
+        <>
+            <div style={{display: 'flex'}}>
+                <Board openTip={openTip} listenChessCount={(black: number, white: number) => {setBlackCount(black);setWhiteCount(white)}}  />
+                <BoardSide blackCount={blackCount} whiteCount={whiteCount} />
+            </div>
+            <div>
+                <BoardBottom shouldOpen={openTip} handleOpenTip={(changeTip:boolean) => {setOpenTip(changeTip)}} />
+            </div>
+        </>
     );
 }
 
 // 棋盘组件
-function Board() {
+function Board({openTip = false, listenChessCount}: any) {
     // 记录下一个当前下棋者
     const [nextChess, setNextChess] = useState(ChessState.black);
     // 记录当前棋盘上的棋子
@@ -65,16 +80,24 @@ function Board() {
         // 初始化棋盘
         let initBoardChess = ReversiRules.initBoardChess();
         // 设置
-        setBoardChess(initBoardChess)
+        setBoardChess(initBoardChess);
+        // 向上曾组件返回棋子数量
+        typeof listenChessCount == "function" && listenChessCount(initBoardChess[ChessState.black].length, initBoardChess[ChessState.white].length);
     }, []);
 
     // 棋子状态变化时，扫描可落点
     useEffect(() => {
-        // 获取下一步能够落点的结果
-        const nextPoints = ReversiRules.computedNextPoints(nextChess, boardChess, board);
-        // 放入到提示位置
-        setTipPoints(nextPoints);
-    }, [nextChess]);
+        if (openTip) {
+            // 获取下一步能够落点的结果
+            const nextPoints = ReversiRules.computedNextPoints(nextChess, boardChess, board);
+            // 放入到提示位置
+            setTipPoints(nextPoints);
+        }
+        if (!openTip) {
+            // 清空提示
+            setTipPoints([]);
+        }
+    }, [nextChess, openTip]);
 
     // 变换棋盘布局
     function changeBoardChess(coordinate: [x: number, y: number]) {
@@ -88,19 +111,21 @@ function Board() {
         const currentMyChessList = boardChess[nextChess];
         // 获取当前的对方棋子列表
         const currentTaChessList = boardChess[ReversiRules.taChess(nextChess)];
-        // 获取下一步我的棋子列表
+        // 获取下一步我的棋子列表(我的棋子 = 当前我的棋子 + 变化的棋子)
         const nextMyChessList = _.concat(currentMyChessList, changedPoints, [coordinate]);
-        // 获取下一步对方棋子列表
+        // 获取下一步对方棋子列表(对方的棋子 = 当前对方的棋子 - 变化的棋子)
         const nextTaChessList = _.differenceWith(currentTaChessList, changedPoints, (arrVal:any, othVal:any) => {
             return ReversiRules.compareCoordinate(arrVal, othVal)
         });
-        // 获取棋盘
+        // 获取棋盘(重新组装棋盘，对应黑白棋数量)
         const initChess = ReversiRules.initBoardChess(nextChess == ChessState.black 
             ? [nextMyChessList, nextTaChessList]
             : [nextTaChessList, nextMyChessList]
         );
         // 设置
         setBoardChess(initChess);
+        // 向上曾组件返回棋子数量
+        typeof listenChessCount == "function" && listenChessCount(initChess[ChessState.black].length, initChess[ChessState.white].length);
         // 返会长度
         return changedPoints.length;
     }
@@ -213,6 +238,34 @@ function TableRow({ row, handleSquareClick, nextChess, boardChess, tipPoints }: 
             {tds}
         </tr>
     );
+}
+
+// 侧边区域
+function BoardSide({blackCount = 0, whiteCount = 0}) {
+    return (
+        <div style={{padding: '35px', position: 'relative'}}>
+            <div style={{top: '50%', position: 'relative',transform: 'translateY(-50%)'}}>
+                <div>
+                    <span>黑棋数量： {blackCount}</span>
+                </div>
+                <Divider style={{border: '2px solid'}} />
+                <div>
+                    <span>白棋数量： {whiteCount}</span>
+                </div>
+            </div>
+        </div>
+    )
+}
+// 底部区域
+function BoardBottom({shouldOpen, handleOpenTip}: any) {
+    return (
+        <div>
+            <p></p>
+            <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', width: '544px'}}>
+                <Button onClick={() => {handleOpenTip(!shouldOpen)}}>{shouldOpen ?  "关闭" : "开启"}提示</Button>
+            </div>
+        </div>
+    )
 }
 
 // 棋子的状态
