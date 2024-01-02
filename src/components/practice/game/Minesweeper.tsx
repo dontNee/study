@@ -3,7 +3,6 @@ import styles from "@/styles/minesweeper.module.scss";
 import { useEffect, useId, useMemo, useState } from "react";
 import Confirm from "@/components/confirm";
 import * as _ from "lodash";
-import { url } from "inspector";
 // 扫雷
 export default function Minesweeper() {
     // 游戏标题
@@ -27,6 +26,8 @@ export default function Minesweeper() {
 
 // 扫雷游戏
 function MinesweeperGame({rows = 9, cols = 9, mines = 10}) {
+    // 打印样式类
+    console.debug("styles: ", styles);
     // 游戏结束对话框控制
     const [confirmOpen, setConfirmOpened] = useState(false);
     // 重新开始控制

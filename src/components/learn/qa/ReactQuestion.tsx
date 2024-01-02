@@ -119,7 +119,7 @@ export function ReactQuestion() {
 
                     <dt>3.React函数式组件没有重新绘制</dt>
                     <dl>
-                        <p>"就地更新"策略和组件内部的状态不会因父组件的重绘而改变</p>
+                        <p>{"就地更新"}策略和组件内部的状态不会因父组件的重绘而改变</p>
                     </dl>
                 </dl>
             </Section>
