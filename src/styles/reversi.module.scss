@@ -1,5 +1,19 @@
 $square-size: 68px;
 
+@keyframes opacitychange {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
 .square {
     display: block;
     background-color: #eaba73;
@@ -30,6 +44,11 @@ $square-size: 68px;
         &.blacktips {
             background-image: url("http://43.138.104.32:80/global-assets/img/study/chess-black.png");
             opacity: 0.5;
+        }
+        &.changing {
+            animation-name: opacitychange;
+            animation-iteration-count: 1;
+            animation-duration: 1s;
         }
     }
 }

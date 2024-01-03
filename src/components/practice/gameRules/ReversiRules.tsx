@@ -216,17 +216,17 @@ export default {
         const myChessList = boardChess[currentChess];
         // 对方的棋子
         const taChessList = boardChess[this.taChess(currentChess)];
-        // 遍历棋盘
-        board && board.forEach(row => {
+        // 我的棋子 对方棋子数量任意一方不为0
+        if ((myChessList && myChessList.length > 0) || (taChessList && taChessList.length > 0)) {
+            // 遍历棋盘
+            board && board.forEach(row => {
+                // 按照行遍历
+                row.forEach((col: [x: number, y: number]) => {
+                    this.computedPoint(col, myChessList, taChessList) && result.push(col);
+                })
 
-            // 按照行遍历
-            row.forEach((col: [x: number, y: number]) => {
-                this.computedPoint(col, myChessList, taChessList) && result.push(col);
-            })
-
-        });
-        // 打印结果集
-        console.debug("计算落点结果：", result, ChessState[currentChess]);
+            });
+        };
         return result;
     },
     // 计算点位是否可落

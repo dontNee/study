@@ -4,6 +4,7 @@ import ReversiRules from "../gameRules/ReversiRules";
 import * as _ from "lodash";
 import styles from "@/styles/reversi.module.scss";
 import { Button, Divider } from "@mui/material";
+import ConfirmDialog from "@/components/confirm";
 
 // 黑白棋
 export default function Reversi() {
@@ -34,28 +35,77 @@ function ReversiGame() {
     const [blackCount, setBlackCount] = useState(0);
     // 白棋数量
     const [whiteCount, setWhiteCount] = useState(0);
+    // 重新开始
+    const [reStart, setReStart] = useState(false);
+    // 开启对话框
+    const [openConfirm, setOpenConfirm] = useState(false);
+    // 消息
+    const [confirmMessage, setConfirmMessage] = useState("");
+
+    // 组件挂载到页面时，运行useEffect方法
+    useEffect(() => {
+        // 开始游戏
+        handleRestartGame();
+    }, [])
+
+    // 重新开始处理
+    function handleRestartGame() {
+        // 设置状态为true
+        setReStart(true);
+    }
+    // 游戏开始后，重置开始状态
+    function handleRestartGameDefault() {
+        // 重置状态为false
+        setReStart(false);
+    }
 
     return (
         <>
             <div style={{display: 'flex'}}>
-                <Board openTip={openTip} listenChessCount={(black: number, white: number) => {setBlackCount(black);setWhiteCount(white)}}  />
+                <Board 
+                    openTip={openTip} 
+                    listenChessCount={(black: number, white: number) => {setBlackCount(black);setWhiteCount(white)}}
+                    restartGameFlag={reStart} 
+                    handleStartGameEnd={handleRestartGameDefault}
+                    handleGameEnd={() => {
+                        // 确认消息
+                        setConfirmMessage(`本局游戏结束，黑棋${blackCount}个，白棋${whiteCount}个，${blackCount > whiteCount ? "黑棋": "白棋"}胜出，是否重新开始？`);
+                        setOpenConfirm(true);
+                    }}
+                />
                 <BoardSide blackCount={blackCount} whiteCount={whiteCount} />
             </div>
             <div>
-                <BoardBottom shouldOpen={openTip} handleOpenTip={(changeTip:boolean) => {setOpenTip(changeTip)}} />
+                <BoardBottom 
+                    shouldOpen={openTip} 
+                    handleOpenTip={(changeTip:boolean) => {setOpenTip(changeTip)}}
+                    handleReStartGame={() => {
+                        // 确认消息
+                        setConfirmMessage("是否要重新开始游戏？");
+                        setOpenConfirm(true);
+                    }} 
+                />
             </div>
+            <ConfirmDialog 
+                open={openConfirm} 
+                setOpen={setOpenConfirm} 
+                restartGame={handleRestartGame}
+                message={confirmMessage} 
+            />
         </>
     );
 }
 
 // 棋盘组件
-function Board({openTip = false, listenChessCount}: any) {
+function Board({openTip = false, listenChessCount, restartGameFlag = false, handleStartGameEnd, handleGameEnd}: any) {
     // 记录下一个当前下棋者
     const [nextChess, setNextChess] = useState(ChessState.black);
     // 记录当前棋盘上的棋子
     const [boardChess, setBoardChess] = useState({} as any);
     // 提示位置
     const [tipPoints, setTipPoints] = useState([] as Array<any>);
+    // 记录当前变化的棋子（用于动画效果）
+    const [stepChangedChess, setStepChangedChess] = useState([] as Array<any>);
     // 初始化棋盘上的棋子
     const board = useMemo(() => {
         // 初始化结果
@@ -77,25 +127,40 @@ function Board({openTip = false, listenChessCount}: any) {
 
     // 组件初始化(只执行一次)
     useEffect(() => {
-        // 初始化棋盘
-        let initBoardChess = ReversiRules.initBoardChess();
-        // 设置
-        setBoardChess(initBoardChess);
-        // 向上曾组件返回棋子数量
-        typeof listenChessCount == "function" && listenChessCount(initBoardChess[ChessState.black].length, initBoardChess[ChessState.white].length);
-    }, []);
+        if (restartGameFlag) {
+            // 初始化棋盘
+            let initBoardChess = ReversiRules.initBoardChess();
+            // 设置
+            setBoardChess(initBoardChess);
+            // 重置棋子
+            setNextChess(ChessState.black);
+            // 向上曾组件返回棋子数量
+            typeof listenChessCount == "function" && listenChessCount(initBoardChess[ChessState.black].length, initBoardChess[ChessState.white].length);
+            // 游戏开始后，触发回调
+            handleStartGameEnd();
+        }
+    }, [restartGameFlag]);
 
     // 棋子状态变化时，扫描可落点
     useEffect(() => {
-        if (openTip) {
-            // 获取下一步能够落点的结果
-            const nextPoints = ReversiRules.computedNextPoints(nextChess, boardChess, board);
-            // 放入到提示位置
-            setTipPoints(nextPoints);
-        }
-        if (!openTip) {
-            // 清空提示
-            setTipPoints([]);
+        // 获取下一步能够落点的结果
+        const nextPoints = ReversiRules.computedNextPoints(nextChess, boardChess, board);
+        // 有落点时
+        if (nextPoints && nextPoints.length) {
+            // 是否开启提示
+            openTip ? setTipPoints(nextPoints) : setTipPoints([]);
+        } else {
+            // 是否结束
+            let ifStart = false;
+            // 无落点则游戏结束
+            const itemKeys = Object.keys(boardChess);
+            // 遍历keys
+            itemKeys && itemKeys.forEach(i => {
+                if (boardChess[i] && boardChess[i].length) {
+                    ifStart = true;
+                }
+            });
+            ifStart && handleGameEnd();
         }
     }, [nextChess, openTip]);
 
@@ -126,6 +191,8 @@ function Board({openTip = false, listenChessCount}: any) {
         setBoardChess(initChess);
         // 向上曾组件返回棋子数量
         typeof listenChessCount == "function" && listenChessCount(initChess[ChessState.black].length, initChess[ChessState.white].length);
+        // 记录变化的棋子
+        setStepChangedChess(changedPoints);
         // 返会长度
         return changedPoints.length;
     }
@@ -150,6 +217,7 @@ function Board({openTip = false, listenChessCount}: any) {
                                 handleSquareClick={handleSquareClick} 
                                 boardChess={boardChess}
                                 tipPoints={tipPoints}
+                                changedPoints={stepChangedChess}
                             ></TableRow>
                         );
                     })
@@ -160,7 +228,9 @@ function Board({openTip = false, listenChessCount}: any) {
 }
 
 // 定义棋子组件
-function Square({coordinate, nextChess, handleSquareClick, boardChess, tipPoints}: any) {
+function Square({coordinate, nextChess, handleSquareClick, boardChess, tipPoints, changedPoints}: any) {
+    // 改变中的样式类
+    const [changingClassName, setChangingClassName] = useState("");
     // 比较坐标点
     function compareCoordinate(coordinate1: [x: number, y: number]) {
         // 调用比较函数
@@ -184,10 +254,20 @@ function Square({coordinate, nextChess, handleSquareClick, boardChess, tipPoints
         }
         return color;
     }
+
+    useEffect(() => {
+        // 获取是否本轮改变的棋子
+        if (changedPoints && _.find(changedPoints, compareCoordinate)) {
+            setChangingClassName(styles.changing);
+        }
+        // 一段时间后删除changing类名
+        setTimeout(() => {
+            setChangingClassName("")
+        }, 1000);
+    }, [changedPoints]);
+
     // 处理按钮的点击事件
     function handleBtnClick() {
-        // 打印当前坐标
-        console.debug("当前点击坐标：", coordinate);
         // 处理按钮的点击事件
         handleSquareClick(coordinate);
     };
@@ -195,7 +275,7 @@ function Square({coordinate, nextChess, handleSquareClick, boardChess, tipPoints
     return (
         <button className={styles.square}>
             <i 
-                className={`${styles.chess} ${pointColor()}`} 
+                className={`${styles.chess} ${pointColor()} ${changingClassName}`} 
                 onClick={handleBtnClick}
             ></i>
         </button>
@@ -203,7 +283,7 @@ function Square({coordinate, nextChess, handleSquareClick, boardChess, tipPoints
 }
 
 // 定义列组件
-function TableCol({ col, handleSquareClick, nextChess, boardChess, tipPoints }: any) {
+function TableCol({ col, handleSquareClick, nextChess, boardChess, tipPoints,changedPoints }: any) {
     return (
         <td>
             <Square 
@@ -212,13 +292,14 @@ function TableCol({ col, handleSquareClick, nextChess, boardChess, tipPoints }: 
                 nextChess={nextChess}
                 boardChess={boardChess}
                 tipPoints={tipPoints}
+                changedPoints={changedPoints}
             />
         </td>
     );
 }
 
 // 定义行组件
-function TableRow({ row, handleSquareClick, nextChess, boardChess, tipPoints }: any) {
+function TableRow({ row, handleSquareClick, nextChess, boardChess, tipPoints, changedPoints}: any) {
     // 获取所有的列
     const tds = row.map((item: any) => {
         return (
@@ -229,6 +310,7 @@ function TableRow({ row, handleSquareClick, nextChess, boardChess, tipPoints }: 
                 nextChess={nextChess}
                 boardChess={boardChess}
                 tipPoints={tipPoints}
+                changedPoints={changedPoints}
             ></TableCol>
         );
     });
@@ -257,11 +339,12 @@ function BoardSide({blackCount = 0, whiteCount = 0}) {
     )
 }
 // 底部区域
-function BoardBottom({shouldOpen, handleOpenTip}: any) {
+function BoardBottom({shouldOpen, handleOpenTip, handleReStartGame}: any) {
     return (
         <div>
             <p></p>
             <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', width: '544px'}}>
+                <Button onClick={() => {handleReStartGame()}}>重新开始</Button>
                 <Button onClick={() => {handleOpenTip(!shouldOpen)}}>{shouldOpen ?  "关闭" : "开启"}提示</Button>
             </div>
         </div>

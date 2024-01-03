@@ -26,8 +26,6 @@ export default function Minesweeper() {
 
 // 扫雷游戏
 function MinesweeperGame({rows = 9, cols = 9, mines = 10}) {
-    // 打印样式类
-    console.debug("styles: ", styles);
     // 游戏结束对话框控制
     const [confirmOpen, setConfirmOpened] = useState(false);
     // 重新开始控制
@@ -58,8 +56,6 @@ function MinesweeperGame({rows = 9, cols = 9, mines = 10}) {
                 }
             }
         }
-        // 打印地雷数组
-        console.debug("mines:", minesList);
         // 初始化坐标系为一个空数组
         const result = [];
         // 9*9
