@@ -1,8 +1,8 @@
 import Section from "@/components/section";
 import styles from "@/styles/minesweeper.module.scss";
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Confirm from "@/components/confirm";
-import * as _ from "lodash";
+import MinesweeperRules from "../gameRules/MinesweeperRules";
 // 扫雷
 export default function Minesweeper() {
     // 游戏标题
@@ -35,7 +35,7 @@ function MinesweeperGame({rows = 9, cols = 9, mines = 10}) {
     // 坐标系
     useEffect(() => {
         // 雷位置数组
-        const minesList = [];
+        const minesList = [] as Array<[x: number, y: number]>;
         // 9*9
         for (let x = 1;x <= rows; x++) {
             for(let y = 1; y <= cols; y++) {
@@ -50,7 +50,7 @@ function MinesweeperGame({rows = 9, cols = 9, mines = 10}) {
                 // 长度满足10个并且随机数 > 0.8
                 if (random > 0.75 && minesListLength == mines) {
                     // 获取数组的索引
-                    let index = _.random(0, mines - 1);
+                    let index = MinesweeperRules.randomIndex(0, mines - 1);
                     // 当前位置设置雷
                     minesList.splice(index, 1, [x, y]);
                 }
@@ -65,11 +65,20 @@ function MinesweeperGame({rows = 9, cols = 9, mines = 10}) {
             // 生成列
             for(let y = 1; y <= cols; y++) {
                 // 遍历地雷数组，获取地雷坐标
-                let shouldMine: boolean = _.findIndex(minesList, (item) => item[0] == x && item[1] == y) > -1;
+                let shouldMine: boolean = MinesweeperRules.haveMineInTargetPoint([x, y], minesList);
+                // 获取周围地雷数
+                let tipCount: number = shouldMine ? 0 : MinesweeperRules.obtainAroundMineCount([x, y], minesList);
                 // 生成组件
                 currentRow.push(
                     <td key={y} style={{lineHeight: "0"}}>
-                        <Square x={x} y={y} minesflag={shouldMine} squareClick={handleSqureClick} restartFlag={restart}></Square>
+                        <Square 
+                            x={x} 
+                            y={y} 
+                            minesflag={shouldMine}  
+                            tipCount={tipCount} 
+                            restartFlag={restart}
+                            squareClick={handleSqureClick}
+                        ></Square>
                     </td>
                 );
             }
@@ -106,7 +115,7 @@ function MinesweeperGame({rows = 9, cols = 9, mines = 10}) {
 }
 
 // 棋子组件
-function Square({x, y, minesflag, squareClick, restartFlag}: any) {
+function Square({x, y, minesflag, squareClick, restartFlag, tipCount}: any) {
     // 初始化为盲盒状态, 即closed
     const [openState, setOpenState] = useState(false);
     // 动态设置className
@@ -116,10 +125,10 @@ function Square({x, y, minesflag, squareClick, restartFlag}: any) {
     useEffect(() => {
         // 类名字符串
         const strClassName = minesflag 
-            ? `${styles.square} ${openState ? styles.opened : styles.closed} ${styles.mines}` 
-            : `${styles.square} ${openState ? styles.opened : styles.closed}`
+            ? `${styles.square} ${styles[`minecount${tipCount}`]} ${openState ? styles.opened : styles.closed} ${styles.mines}` 
+            : `${styles.square} ${styles[`minecount${tipCount}`]} ${openState ? styles.opened : styles.closed}`
         setBtnClassName(strClassName);
-    }, [openState, minesflag]);
+    }, [openState, minesflag, tipCount]);
     // 重新开始
     useEffect(() => {
         // 重新设置打开状态

@@ -22,6 +22,54 @@
         border: 2px solid #828282;
     }
 
+    &.minecount1::after {
+        content: "1";
+        color: rgb(0, 0, 255);
+        font-weight: bold;
+    }
+
+    &.minecount2::after {
+        content: "2";
+        color: rgb(0, 128, 0);
+        font-weight: bold;
+    }
+
+    &.minecount3::after {
+        content: "3";
+        color: rgb(255, 0, 0);
+        font-weight: bold;
+    }
+
+    &.minecount4::after {
+        content: "4";
+        color: rgb(3, 1, 125);
+        font-weight: bold;
+    }
+
+    &.minecount5::after {
+        content: "5";
+        color: rgb(127, 1, 1);
+        font-weight: bold;
+    }
+
+    &.minecount6::after {
+        content: "6";
+        color: rgb(8, 8, 125);
+        font-weight: bold;
+    }
+
+    &.minecount7::after {
+        content: "7";
+        color: rgb(128, 0, 128);
+        font-weight: bold;
+    }
+
+    &.minecount8::after {
+        content: "8";
+        color: rgb(255, 0, 255);
+        font-weight: bold;
+    }
+
 }
 
 .mines {
